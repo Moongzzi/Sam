@@ -672,15 +672,148 @@ function OperatorSettings({ snapshot, setSnapshot }: { snapshot: SamSnapshot; se
 }
 
 function SettingsStores({ snapshot, onUpdate, onAdd, onDelete }: { snapshot: SamSnapshot; onUpdate: (store: Store) => void; onAdd: () => void; onDelete: (id: string) => void }) {
-  return <div className="settings-list">{snapshot.stores.map((store) => <div className="settings-row" key={store.id}><div className="settings-fields"><label>매장명<input value={store.name} onChange={(event) => onUpdate({ ...store, name: event.target.value })} /></label><label>지역<input value={store.address ?? ""} onChange={(event) => onUpdate({ ...store, address: event.target.value })} /></label></div><button className="icon-button danger" type="button" onClick={() => onDelete(store.id)} aria-label={`${store.name} 삭제`}><X size={16} /></button></div>)}<button className="add-button" type="button" onClick={onAdd}><Plus size={16} /> 매장 추가</button></div>;
+  return (
+    <div className="settings-list">
+      {snapshot.stores.map((store) => (
+        <SettingsStoreRow key={store.id} store={store} onUpdate={onUpdate} onDelete={onDelete} />
+      ))}
+      <button className="add-button" type="button" onClick={onAdd}><Plus size={16} /> 매장 추가</button>
+    </div>
+  );
+}
+
+function SettingsStoreRow({ store, onUpdate, onDelete }: { store: Store; onUpdate: (store: Store) => void; onDelete: (id: string) => void }) {
+  const [draft, setDraft] = useState(store);
+
+  useEffect(() => {
+    setDraft(store);
+  }, [store]);
+
+  const save = () => {
+    if (draft.name !== store.name || draft.address !== store.address) {
+      onUpdate(draft);
+    }
+  };
+
+  return (
+    <div className="settings-row">
+      <div className="settings-fields">
+        <label>매장명<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} onBlur={save} /></label>
+        <label>지역<input value={draft.address ?? ""} onChange={(event) => setDraft({ ...draft, address: event.target.value })} onBlur={save} /></label>
+      </div>
+      <button className="icon-button danger" type="button" onClick={() => onDelete(store.id)} aria-label={`${store.name} 삭제`}><X size={16} /></button>
+    </div>
+  );
 }
 
 function SettingsThemes({ snapshot, onUpdate, onAdd, onDelete }: { snapshot: SamSnapshot; onUpdate: (theme: Theme) => void; onAdd: () => void; onDelete: (id: string) => void }) {
-  return <div className="settings-list">{snapshot.themes.map((theme) => <div className="settings-row settings-row--theme" key={theme.id}><div className="settings-fields"><label>테마명<input value={theme.name} onChange={(event) => onUpdate({ ...theme, name: event.target.value })} /></label><label>매장<select value={theme.storeId} onChange={(event) => onUpdate({ ...theme, storeId: event.target.value })}>{snapshot.stores.map((store) => <option value={store.id} key={store.id}>{store.name}</option>)}</select></label><label>진행(분)<input type="number" min="1" value={theme.playTimeMinutes} onChange={(event) => onUpdate({ ...theme, playTimeMinutes: Number(event.target.value) })} /></label><label>정리(분)<input type="number" min="0" value={theme.cleanupTimeMinutes} onChange={(event) => onUpdate({ ...theme, cleanupTimeMinutes: Number(event.target.value) })} /></label></div><button className="icon-button danger" type="button" onClick={() => onDelete(theme.id)} aria-label={`${theme.name} 삭제`}><X size={16} /></button></div>)}<button className="add-button" type="button" onClick={onAdd}><Plus size={16} /> 테마 추가</button></div>;
+  return (
+    <div className="settings-list">
+      {snapshot.themes.map((theme) => (
+        <SettingsThemeRow key={theme.id} theme={theme} stores={snapshot.stores} onUpdate={onUpdate} onDelete={onDelete} />
+      ))}
+      <button className="add-button" type="button" onClick={onAdd}><Plus size={16} /> 테마 추가</button>
+    </div>
+  );
+}
+
+function SettingsThemeRow({ theme, stores, onUpdate, onDelete }: { theme: Theme; stores: Store[]; onUpdate: (theme: Theme) => void; onDelete: (id: string) => void }) {
+  const [draft, setDraft] = useState(theme);
+
+  useEffect(() => {
+    setDraft(theme);
+  }, [theme]);
+
+  const save = (next = draft) => {
+    if (
+      next.name !== theme.name ||
+      next.storeId !== theme.storeId ||
+      next.playTimeMinutes !== theme.playTimeMinutes ||
+      next.cleanupTimeMinutes !== theme.cleanupTimeMinutes
+    ) {
+      onUpdate(next);
+    }
+  };
+
+  return (
+    <div className="settings-row settings-row--theme">
+      <div className="settings-fields">
+        <label>테마명<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} onBlur={() => save()} /></label>
+        <label>매장<select value={draft.storeId} onChange={(event) => { const next = { ...draft, storeId: event.target.value }; setDraft(next); save(next); }}>{stores.map((store) => <option value={store.id} key={store.id}>{store.name}</option>)}</select></label>
+        <label>진행(분)<input type="number" min="1" value={draft.playTimeMinutes} onChange={(event) => setDraft({ ...draft, playTimeMinutes: Number(event.target.value) })} onBlur={() => save()} /></label>
+        <label>정리(분)<input type="number" min="0" value={draft.cleanupTimeMinutes} onChange={(event) => setDraft({ ...draft, cleanupTimeMinutes: Number(event.target.value) })} onBlur={() => save()} /></label>
+      </div>
+      <button className="icon-button danger" type="button" onClick={() => onDelete(theme.id)} aria-label={`${theme.name} 삭제`}><X size={16} /></button>
+    </div>
+  );
 }
 
 function SettingsTeams({ snapshot, onUpdate, onAdd, onDelete }: { snapshot: SamSnapshot; onUpdate: (team: Team) => void; onAdd: () => void; onDelete: (id: string) => void }) {
-  return <div className="settings-list">{snapshot.teams.map((team) => <details className="team-settings" key={team.id}><summary><span className="team-color" style={{ background: team.color }} /><strong>{team.name}</strong><small>{team.assignedThemeIds.length}개 테마</small><ChevronRight size={17} /></summary><div className="team-settings__body"><div className="settings-fields"><label>팀 이름<input value={team.name} onChange={(event) => onUpdate({ ...team, name: event.target.value })} /></label><label>팀 색상<input type="color" value={team.color} onChange={(event) => onUpdate({ ...team, color: event.target.value })} /></label></div><fieldset><legend>참여 테마</legend>{snapshot.stores.map((store) => <div className="theme-check-group" key={store.id}><strong>{store.name}</strong>{snapshot.themes.filter((theme) => theme.storeId === store.id).map((theme) => { const checked = team.assignedThemeIds.includes(theme.id); return <label key={theme.id}><input type="checkbox" checked={checked} onChange={(event) => onUpdate({ ...team, assignedThemeIds: event.target.checked ? [...new Set([...team.assignedThemeIds, theme.id])] : team.assignedThemeIds.filter((id) => id !== theme.id) })} />{theme.name}</label>; })}</div>)}</fieldset><button className="secondary-button danger" type="button" onClick={() => onDelete(team.id)}><X size={15} /> 팀 삭제</button></div></details>)}<button className="add-button" type="button" onClick={onAdd}><Plus size={16} /> 팀 추가</button></div>;
+  return (
+    <div className="settings-list">
+      {snapshot.teams.map((team) => (
+        <SettingsTeamRow key={team.id} team={team} stores={snapshot.stores} themes={snapshot.themes} onUpdate={onUpdate} onDelete={onDelete} />
+      ))}
+      <button className="add-button" type="button" onClick={onAdd}><Plus size={16} /> 팀 추가</button>
+    </div>
+  );
+}
+
+function SettingsTeamRow({ team, stores, themes, onUpdate, onDelete }: { team: Team; stores: Store[]; themes: Theme[]; onUpdate: (team: Team) => void; onDelete: (id: string) => void }) {
+  const [draft, setDraft] = useState(team);
+
+  useEffect(() => {
+    setDraft(team);
+  }, [team]);
+
+  const save = (next = draft) => {
+    if (JSON.stringify(next) !== JSON.stringify(team)) {
+      onUpdate(next);
+    }
+  };
+
+  return (
+    <details className="team-settings">
+      <summary><span className="team-color" style={{ background: draft.color }} /><strong>{draft.name}</strong><small>{draft.assignedThemeIds.length}개 테마</small><ChevronRight size={17} /></summary>
+      <div className="team-settings__body">
+        <div className="settings-fields">
+          <label>팀 이름<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} onBlur={() => save()} /></label>
+          <label>팀 색상<input type="color" value={draft.color} onChange={(event) => { const next = { ...draft, color: event.target.value }; setDraft(next); save(next); }} /></label>
+        </div>
+        <fieldset>
+          <legend>참여 테마</legend>
+          {stores.map((store) => (
+            <div className="theme-check-group" key={store.id}>
+              <strong>{store.name}</strong>
+              {themes.filter((theme) => theme.storeId === store.id).map((theme) => {
+                const checked = draft.assignedThemeIds.includes(theme.id);
+                return (
+                  <label key={theme.id}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(event) => {
+                        const next = {
+                          ...draft,
+                          assignedThemeIds: event.target.checked
+                            ? [...new Set([...draft.assignedThemeIds, theme.id])]
+                            : draft.assignedThemeIds.filter((id) => id !== theme.id),
+                        };
+                        setDraft(next);
+                        save(next);
+                      }}
+                    />
+                    {theme.name}
+                  </label>
+                );
+              })}
+            </div>
+          ))}
+        </fieldset>
+        <button className="secondary-button danger" type="button" onClick={() => onDelete(team.id)}><X size={15} /> 팀 삭제</button>
+      </div>
+    </details>
+  );
 }
 
 function NextThemeCard({ recommendation }: { recommendation: ReturnType<typeof getRecommendedNextTheme> }) {
