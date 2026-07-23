@@ -133,7 +133,6 @@ function OperatorCodePage({ onBack, onSuccess }: { onBack: () => void; onSuccess
           }}
           inputMode="numeric"
           autoComplete="one-time-code"
-          placeholder="0724"
         />
         {error && <p className="form-error">{error}</p>}
         <button className="primary-button" type="submit">입장</button>
