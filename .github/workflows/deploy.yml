@@ -34,6 +34,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_USE_MOCK_DATA: "false"
 
       - name: Publish dist to gh-pages
         uses: peaceiris/actions-gh-pages@v4

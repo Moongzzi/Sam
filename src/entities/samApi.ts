@@ -1,5 +1,5 @@
 import { mockSnapshot } from "../data/mockData";
-import { isSupabaseConfigured, supabase } from "../lib/supabase";
+import { isMockDataEnabled, isSupabaseConfigured, supabase } from "../lib/supabase";
 import type { SamSnapshot, Store, Team, TeamRoutePlan, Theme, ThemeRun } from "./types";
 
 const LOCAL_SNAPSHOT_KEY = "sam_operator_snapshot_v1";
@@ -109,6 +109,9 @@ const mapRoutePlan = (plan: {
 
 export async function getSamSnapshot(): Promise<SamSnapshot> {
   if (!isSupabaseConfigured || !supabase) {
+    if (!isMockDataEnabled) {
+      throw new Error("Supabase 환경변수가 설정되지 않아 운영 데이터를 불러올 수 없습니다. VITE_SUPABASE_URL과 VITE_SUPABASE_ANON_KEY를 확인해주세요.");
+    }
     await new Promise((resolve) => window.setTimeout(resolve, 250));
     const stored = window.localStorage.getItem(LOCAL_SNAPSHOT_KEY);
     if (!stored) return mockSnapshot;
@@ -159,7 +162,7 @@ export async function getSamSnapshot(): Promise<SamSnapshot> {
 }
 
 export function persistLocalSnapshot(snapshot: SamSnapshot) {
-  if (!isSupabaseConfigured) {
+  if (!isSupabaseConfigured && isMockDataEnabled) {
     window.localStorage.setItem(LOCAL_SNAPSHOT_KEY, JSON.stringify(snapshot));
   }
 }
