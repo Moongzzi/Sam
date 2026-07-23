@@ -36,6 +36,11 @@ export const mockSnapshot: SamSnapshot = {
       participantCode: letter,
       color: ["#2563eb", "#059669", "#dc2626", "#7c3aed", "#ca8a04", "#0891b2", "#db2777", "#475569", "#ea580c"][index],
       currentStatus: index < 5 ? "playing" : "waiting",
+      assignedThemeIds: [
+        `theme-${(index % 3) + 1}`,
+        `theme-${((index + 1) % 3) + 4}`,
+        `theme-${((index + 2) % 3) + 7}`,
+      ],
     };
   }),
   themeRuns: [

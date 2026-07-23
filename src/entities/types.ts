@@ -30,6 +30,7 @@ export type Team = {
   participantCode?: string;
   color: string;
   currentStatus: "waiting" | "playing" | "finished";
+  assignedThemeIds: string[];
 };
 
 export type ThemeRunStatus = "planned" | "playing" | "completed" | "skipped";
@@ -42,6 +43,7 @@ export type ThemeRun = {
   status: ThemeRunStatus;
   enteredAt?: string;
   exitedAt?: string;
+  expectedExitedAt?: string;
   memo?: string;
 };
 
@@ -54,6 +56,8 @@ export type TeamRoutePlan = {
   themeId: string;
   routeOrder: number;
   status: RoutePlanStatus;
+  plannedEnteredAt?: string;
+  plannedExitedAt?: string;
 };
 
 export type SamSnapshot = {
@@ -71,4 +75,22 @@ export type TeamRecommendation = {
   store: Store | null;
   reason: string;
   availableAt: Date;
+};
+
+export type PredictedThemeRun = {
+  id: string;
+  teamId: string;
+  themeId: string;
+  enteredAt: Date;
+  exitedAt: Date;
+  availableAt: Date;
+  routeOrder: number;
+  reason: string;
+  isConfirmed: boolean;
+};
+
+export type ScheduleConflict = {
+  predictionId: string;
+  reason: string;
+  conflictingLabel: string;
 };
